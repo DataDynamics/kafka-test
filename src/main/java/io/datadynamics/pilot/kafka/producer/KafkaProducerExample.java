@@ -5,11 +5,12 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
 public class KafkaProducerExample {
-        private static KafkaProducer producer;
+        private static KafkaProducer<String, String> producer;
 
     public static void main(String[] args) {
         Properties kafkaProps = new Properties();
@@ -17,28 +18,36 @@ public class KafkaProducerExample {
         kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        producer = new KafkaProducer<String, String>(kafkaProps);
+        producer = createProducer(kafkaProps);
 
         try {
-//            sendMessageSync("kafka-code-test", "", "no key sync value 1");
-//            sendMessageAsync("kafka-code-test", "", "no key async value 1");
-            sendMessage("kafka-code-test", "no key fire-and-forget value 6");
+            ProducerRecord<String, String> record =
+                    new ProducerRecord<>("kafka-code-test",
+                            "empty key, fire-and-forget, exist header, value 1");
+
+//            sendMessageSync(record);
+//            sendMessageAsync(record);
+//            sendMessage(record);
+            sendMessageWithHeader(record);
         } catch (Exception e){
             e.printStackTrace();
         } finally {
             // close()를 안 하면 메시지 손실이 거의 90퍼 발생
-            producer.close();
+            closeProducer();
         }
     }
 
-    public static void sendMessage(String topic, String value) throws Exception {
-        // fire-and-forget 전송 방식
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, value);
+    public static void sendMessageWithHeader(ProducerRecord<String, String> record) {
+        record.headers().add("privacy-level","YOLO".getBytes(StandardCharsets.UTF_8));
         producer.send(record);
     }
 
-    public static void sendMessageAsync(String topic, String key, String value) throws Exception {
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+    public static void sendMessage(ProducerRecord<String, String> record) throws Exception {
+        // fire-and-forget 전송 방식
+        producer.send(record);
+    }
+
+    public static void sendMessageAsync(ProducerRecord<String, String> record) throws Exception {
         producer.send(record,
                 new Callback() {
                     public void onCompletion(RecordMetadata metadata, Exception e) {
@@ -48,11 +57,19 @@ public class KafkaProducerExample {
         });
     }
 
-    public static void sendMessageSync(String topic, String key, String value) throws Exception {
-        ProducerRecord<String, String> record = new ProducerRecord<>(topic, key, value);
+    public static void sendMessageSync(ProducerRecord<String, String> record) throws Exception {
         Future<RecordMetadata> future = producer.send(record);
         RecordMetadata metadata = future.get();
         System.out.printf("Message sent to topic: %s, partition: %s, offset: %d%n",
                 metadata.topic(), metadata.partition(), metadata.offset());
+    }
+
+    private static KafkaProducer<String, String> createProducer(Properties kafkaProps) {
+        return new KafkaProducer<>(kafkaProps);
+    }
+
+    private static void closeProducer() {
+        if(producer != null)
+            producer.close();
     }
 }
