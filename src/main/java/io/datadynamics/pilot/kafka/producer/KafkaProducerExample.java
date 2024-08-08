@@ -19,22 +19,52 @@ public class KafkaProducerExample {
         kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
+//        kafkaProps.put("partitioner.class", "io.datadynamics.pilot.kafka.producer.BananaPartitioner");
+
         producer = createProducer(kafkaProps);
 
         try {
-            ProducerRecord<String, String> record =
-                    new ProducerRecord<>("kafka-code-test",
-                            "empty key, fire-and-forget, from .props, value 1");
-
-//            sendMessageSync(record);
-//            sendMessageAsync(record);
-            sendMessage(record);
-//            sendMessageWithHeader(record);
+            sendRepeatedMessages(3);
         } catch (Exception e){
             e.printStackTrace();
         } finally {
-            // close()를 안 하면 메시지 손실이 거의 90퍼 발생
             closeProducer();
+        }
+    }
+
+    public static void sendMessageOnce() throws Exception {
+        ProducerRecord<String, String> record =
+                new ProducerRecord<>("kafka-code-test",
+                        "Banana",
+                        "empty key, fire-and-forget, from .props, value 1");
+        chooseMessageSendMode("", record);
+    }
+
+    public static void sendRepeatedMessages(int num) throws Exception {
+        for (int i = 0; i < num; i++) {
+            ProducerRecord<String, String> record =
+                    new ProducerRecord<>("kafka-code-test",
+                            "Banana",
+                            "key banana, fire-and-forget, default-partitioner, value " + i);
+            chooseMessageSendMode("", record);
+        }
+    }
+
+    public static void chooseMessageSendMode(String mode, ProducerRecord<String, String> record) throws Exception {
+        switch (mode) {
+            case "async":
+                sendMessageAsync(record);
+                break;
+            case "sync":
+                sendMessageSync(record);
+                break;
+            case "header":
+                sendMessageWithHeader(record);
+                break;
+            case "fire-and-forget":
+            default:
+                sendMessage(record);
+                break;
         }
     }
 
@@ -44,7 +74,6 @@ public class KafkaProducerExample {
     }
 
     public static void sendMessage(ProducerRecord<String, String> record) throws Exception {
-        // fire-and-forget 전송 방식
         producer.send(record);
     }
 
