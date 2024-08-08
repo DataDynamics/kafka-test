@@ -5,6 +5,8 @@ import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.Future;
@@ -13,8 +15,7 @@ public class KafkaProducerExample {
         private static KafkaProducer<String, String> producer;
 
     public static void main(String[] args) {
-        Properties kafkaProps = new Properties();
-        kafkaProps.put("bootstrap.servers", "10.0.1.67:9092,10.0.1.68:9092,10.0.1.69:9092");
+        Properties kafkaProps = loadKafkaProps();
         kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
@@ -23,12 +24,12 @@ public class KafkaProducerExample {
         try {
             ProducerRecord<String, String> record =
                     new ProducerRecord<>("kafka-code-test",
-                            "empty key, fire-and-forget, exist header, value 1");
+                            "empty key, fire-and-forget, from .props, value 1");
 
 //            sendMessageSync(record);
 //            sendMessageAsync(record);
-//            sendMessage(record);
-            sendMessageWithHeader(record);
+            sendMessage(record);
+//            sendMessageWithHeader(record);
         } catch (Exception e){
             e.printStackTrace();
         } finally {
@@ -71,5 +72,19 @@ public class KafkaProducerExample {
     private static void closeProducer() {
         if(producer != null)
             producer.close();
+    }
+
+    public static Properties loadKafkaProps() {
+        Properties properties = new Properties();
+        try (InputStream input = KafkaProducerExample.class.getClassLoader().getResourceAsStream("kafka.properties")) {
+            if (input == null) {
+                System.out.println("No kafka properties found");
+                return properties;
+            }
+            properties.load(input);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return properties;
     }
 }
