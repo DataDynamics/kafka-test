@@ -1,5 +1,6 @@
 package io.datadynamics.pilot.kafka.producer;
 
+import io.datadynamics.pilot.kafka.common.KafkaConfig;
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -11,11 +12,11 @@ import java.nio.charset.StandardCharsets;
 import java.util.Properties;
 import java.util.concurrent.Future;
 
-public class KafkaProducerExample {
-        private static KafkaProducer<String, String> producer;
+public class Producer {
+    private static KafkaProducer<String, String> producer;
 
     public static void main(String[] args) {
-        Properties kafkaProps = loadKafkaProps();
+        Properties kafkaProps = KafkaConfig.loadKafkaProps();
         kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
@@ -32,20 +33,11 @@ public class KafkaProducerExample {
         }
     }
 
-    public static void sendMessageOnce() throws Exception {
-        ProducerRecord<String, String> record =
-                new ProducerRecord<>("kafka-code-test",
-                        "Banana",
-                        "empty key, fire-and-forget, from .props, value 1");
-        chooseMessageSendMode("", record);
-    }
-
     public static void sendRepeatedMessages(int num) throws Exception {
         for (int i = 0; i < num; i++) {
             ProducerRecord<String, String> record =
                     new ProducerRecord<>("kafka-code-test",
-                            "Banana",
-                            "key banana, fire-and-forget, default-partitioner, value " + i);
+                            "key null, fire-and-forget, default-partitioner, value " + i);
             chooseMessageSendMode("", record);
         }
     }
@@ -103,17 +95,4 @@ public class KafkaProducerExample {
             producer.close();
     }
 
-    public static Properties loadKafkaProps() {
-        Properties properties = new Properties();
-        try (InputStream input = KafkaProducerExample.class.getClassLoader().getResourceAsStream("kafka.properties")) {
-            if (input == null) {
-                System.out.println("No kafka properties found");
-                return properties;
-            }
-            properties.load(input);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return properties;
-    }
 }
