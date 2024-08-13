@@ -10,7 +10,8 @@ public class TestConsumerExample {
     public void testConsumerExample() {
         Consumer consumer = new Consumer();
         Properties kafkaProps = consumer.loadKafkaProps();
-//        consumer.pullMessages(kafkaProps);
+        consumer.pullMessages(kafkaProps);
     }
+
 }
 
