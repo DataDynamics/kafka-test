@@ -7,10 +7,11 @@ import java.util.UUID;
 public class KafkaTest {
     @Test
     public void platformCustomTest() {
+        String producerId = UUID.randomUUID().toString();
         PlatformProducer producer = new PlatformProducer(
                 "Impala",
-                UUID.randomUUID().toString(),
-                "https://jsonplaceholder.typicode.com/posts/1"
+                producerId,
+                "http://10.0.0.1:8080/kafka/producer/options/" + producerId
         );
 
         producer.send(new KafkaRecord("all-messages", "json"));

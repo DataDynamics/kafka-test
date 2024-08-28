@@ -5,9 +5,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import java.util.UUID;
 
 public class KafkaRecord {
-    private String topic;
-    private String value;
-    private String key = UUID.randomUUID().toString();
+    private final String topic;
+    private final String value;
+    private final String key = UUID.randomUUID().toString();
 
     ProducerRecord<String, String> record;
 
