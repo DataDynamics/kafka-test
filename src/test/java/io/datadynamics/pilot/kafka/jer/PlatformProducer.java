@@ -69,11 +69,11 @@ public class PlatformProducer {
                 Map.Entry<String, JsonNode> field = fields.next();
                 if ("logging-api".equals(field.getKey())) {
                     this.loggingApi = field.getValue().textValue();
-                } else {
+                } else { // object는 한 depth 더 들어가서 property 세팅
                     addToProperties(props, field.getValue(), field.getKey().replace("-", "."));
                 }
             }
-        } else if (node.isArray()) {
+        } else if (node.isArray()) { // bootstrap.servers array는 한 줄로 변환
             StringBuilder value = new StringBuilder();
             for (JsonNode element : node) {
                 value.append(element.asText()).append(",");
